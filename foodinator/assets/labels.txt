@@ -1,0 +1,21 @@
+0 Butter Chicken
+1 Butter Naan
+2 Chicken Fried Rice
+3 Chole Bhature
+4 Dahi Bhalla
+5 Daal Makhani
+6 Gajar Halwa
+7 Hilsa Fish Curry
+8 Idli
+9 Jalebi
+10 Kachori
+11 Kadai Paneer
+12 Kulfi
+13 Masala Dosa
+14 Nalli Nihari
+15 Pasta
+16 Peda
+17 Pizza
+18 Rasgulla
+19 Samosa
+20 Vadapav

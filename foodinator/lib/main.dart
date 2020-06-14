@@ -95,6 +95,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _controller != null
+          ? _initializeControllerFuture = _controller.initialize()
+          : null;
+    }
+  }
+
   final RoundedLoadingButtonController _btnController = new RoundedLoadingButtonController();
 
   @override
@@ -177,7 +186,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       );
 
                       _btnController.success();
-                      _btnController.reset();
+
+                      Timer(Duration(seconds: 2), () {
+                        _btnController.reset();
+                      });
 
 //                      Navigator.push(
 //                        context,

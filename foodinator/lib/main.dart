@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
   var modelLoaded = false;
-  List<String> labels = ["A"];
+  List<String> labels = [];
 
   @override
   void initState() {
@@ -178,10 +178,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
                       var recognitions = await Tflite.runModelOnImage(
                           path: File(path).path,
-                          numResults: 21,    // defaults to 5
+                          numResults: 77,    // defaults to 5
                           threshold: 0.2,
-                          imageMean: 0.0,   // defaults to 117.0
-                          imageStd: 255.0,// defaults to 0.1
+                          imageMean: 0,   // defaults to 117.0
+                          imageStd: 0,// defaults to 0.1
                           asynch: true      // required
                       );
 
@@ -245,8 +245,8 @@ class _MyHomePageState extends State<MyHomePage> {
 class TFLiteHelper {
   static Future<String> loadModel() async {
     return Tflite.loadModel(
-      model: "assets/food.tflite",
-      labels: "assets/newlabels.txt",
+      model: "assets/food70B.tflite",
+      labels: "assets/labels70B.txt",
     );
   }
 }

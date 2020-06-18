@@ -48,12 +48,12 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/model_unopt.tflite
-    - assets/model_size.tflite
-    - assets/model_time.tflite
-    - assets/labels.txt
     - assets/food.tflite
     - assets/newlabels.txt
+    - assets/newlabels2.txt
+    - assets/food72.tflite
+    - assets/food70B.tflite
+    - assets/labels70B.txt
 
   # To add assets to your application, add an assets section, like this:
   # assets:

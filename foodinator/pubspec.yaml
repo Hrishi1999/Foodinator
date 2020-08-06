@@ -54,7 +54,11 @@ flutter:
     - assets/food72.tflite
     - assets/food70B.tflite
     - assets/labels70B.txt
-
+    - assets/labels9070.txt
+    - assets/food9070.tflite
+    - assets/food9070BIG.tflite
+    - assets/model9763.tflite
+    - assets/labels9763.txt
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

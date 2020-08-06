@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:tflite/tflite.dart';
+import 'package:image/image.dart' as img;
 
 var firstCam;
 
@@ -27,13 +29,14 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
 
   // This widget is the root of your application.
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
         statusBarColor: Colors.orange,
     ));
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Foodinator',
       theme: ThemeData(
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
@@ -58,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _initializeControllerFuture;
   var modelLoaded = false;
   List<String> labels = [];
+  bool _visible = false;
 
   @override
   void initState() {
@@ -88,16 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _capturePic()
-  {
-    Timer(Duration(seconds: 3), () {
-      _btnController.success();
-    });
-  }
-
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
+  void didChangeAppLifecycleState(AppLifecycleState appLifecycleState) {
+    if (appLifecycleState == AppLifecycleState.resumed) {
       _controller != null
           ? _initializeControllerFuture = _controller.initialize()
           : null;
@@ -133,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: FutureBuilder<void>(
                       future: _initializeControllerFuture,
                       builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.connectionState == ConnectionState.done && _controller.value.isInitialized) {
                           // If the Future is complete, display the preview.
                           return CameraPreview(_controller);
                         } else {
@@ -150,53 +147,48 @@ class _MyHomePageState extends State<MyHomePage> {
               direction: Axis.horizontal,
               spacing: 15,
               children: <Widget>[
-                SizedBox(height: 30,),
+                SizedBox(height: 10,),
                 RoundedLoadingButton(
                   color: Colors.orangeAccent,
                   child: Text('Capture Image', style: TextStyle(color: Colors.white)),
                   controller: _btnController,
                   onPressed: () async {
-                    // Take the Picture in a try / catch block. If anything goes wrong,
-                    // catch the error.
+
+                    setState(() {
+                      _visible = false;
+                    });
+
                     try {
-                      // Ensure that the camera is initialized.
                       await _initializeControllerFuture;
 
-                      // Construct the path where the image should be saved using the
-                      // pattern package.
                       final path = join(
-                        // Store the picture in the temp directory.
-                        // Find the temp directory using the `path_provider` plugin.
+
                         (await getTemporaryDirectory()).path,
                         '${DateTime.now()}.png',
                       );
 
-                      // Attempt to take a picture and log where it's been saved.
                       await _controller.takePicture(path);
                       print(path);
 
 
                       var recognitions = await Tflite.runModelOnImage(
                           path: File(path).path,
-                          numResults: 77,    // defaults to 5
-                          threshold: 0.2,
+                          numResults: 45,    // defaults to 5
+                          threshold: 0.1,
                           imageMean: 0,   // defaults to 117.0
-                          imageStd: 0,// defaults to 0.1
+                          imageStd: 255,// defaults to 0.1
                           asynch: true      // required
                       );
 
                       _btnController.success();
 
-                      Timer(Duration(seconds: 2), () {
-                        _btnController.reset();
+                      setState(() {
+                        _visible = true;
                       });
 
-//                      Navigator.push(
-//                        context,
-//                        MaterialPageRoute(
-//                          builder: (context) => DisplayPictureScreen(imagePath: path),
-//                        ),
-//                      );
+                      Timer(Duration(milliseconds: 1500), () {
+                        _btnController.reset();
+                      });
 
                       print(recognitions);
                       List<String> l = [];
@@ -208,17 +200,19 @@ class _MyHomePageState extends State<MyHomePage> {
                         labels = l;
                       });
 
-                      // If the picture was taken, display it on a new screen.
 
                     } catch (e) {
-                      // If an error occurs, log the error to the console.
                       print(e);
                     }
                   },
                 ),
                 SizedBox(height: 20, ),
-                Row(
-                  children: _createChildren(),
+                AnimatedOpacity(
+                  opacity: _visible ? 1.0 : 0.0,
+                  duration: Duration(milliseconds: 500),
+                  child: Wrap(
+                    children:_createChildren(context),
+                  ),
                 ),
               ],
             ),
@@ -228,41 +222,60 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  List<Widget> _createChildren() {
+  List<Widget> _createChildren(BuildContext context) {
     return new List<Widget>.generate(labels.length, (int index) {
       return Wrap(
         children: <Widget>[
-          Chip(
-            label: Text(labels[index]),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DisplayDish(dish: labels[index]),
+                ),
+              );
+            },
+            child: Chip(
+              label: Text(labels[index]),
+            ),
           ),
           SizedBox(width: 10,)
         ],
       );
     });
   }
+
 }
 
 class TFLiteHelper {
   static Future<String> loadModel() async {
     return Tflite.loadModel(
-      model: "assets/food70B.tflite",
-      labels: "assets/labels70B.txt",
+      model: "assets/model9763.tflite",
+      labels: "assets/labels9763.txt",
     );
   }
 }
 
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
+class DisplayDish extends StatefulWidget {
+  final String dish;
 
-  const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
+  const DisplayDish({Key key, this.dish}) : super(key: key);
+
+  @override
+  _DisplayDish createState() => _DisplayDish();
+}
+
+class _DisplayDish extends State<DisplayDish> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+        appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Colors.orange,
+        title: Text(widget.dish),
+    ),
+    body: Text('asd'),
     );
   }
 }
